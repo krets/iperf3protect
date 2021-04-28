@@ -26,8 +26,8 @@ def get_args():
     parser.add_argument('--help', action='help', help='Show this help message and exit')
     parser.add_argument("-h", "--headers", action="store_true", help="Include column headers")
     parser.add_argument("-d", "--debug", action="store_true", help="Debug messages")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose messsage")
-    parser.add_argument("json", nargs="?", help="Specify json file to parse")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose messsages")
+    parser.add_argument("jsonfile", nargs="?", help="Specify json file to parse (default: STDIN)")
     return parser.parse_args()
 
 def main():
@@ -47,8 +47,8 @@ def main():
             ["date", "ip", "localport", "remoteport", "duration", "protocol", "num_streams", "cookie", "sent",
              "sent_mbps", "rcvd", "rcvd_mbps", "totalsent", "totalreceived"])
 
-    if args.json:
-        source_file = open(args.json, 'rb')
+    if args.jsonfile:
+        source_file = open(args.jsonfile, 'rb')
     else:
         source_file = sys.stdin
     try:
