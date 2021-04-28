@@ -55,53 +55,49 @@ def main():
         obj = json.load(source_file)
     except ValueError:
         LOG.error("Malformed json")
+        return
     process(obj, csvwriter)
 
 def process(obj, csvwriter):
-    try:
-        # caveat: assumes multiple streams are all from same IP so we take the 1st one
-        # todo: handle errors and missing elements
-        ip = (obj["start"]["connected"][0]["remote_host"]).encode('ascii', 'ignore')
-        local_port = obj["start"]["connected"][0]["local_port"]
-        remote_port = obj["start"]["connected"][0]["remote_port"]
+    # caveat: assumes multiple streams are all from same IP so we take the 1st one
+    # todo: handle errors and missing elements
+    ip = (obj["start"]["connected"][0]["remote_host"]).encode('ascii', 'ignore')
+    local_port = obj["start"]["connected"][0]["local_port"]
+    remote_port = obj["start"]["connected"][0]["remote_port"]
 
-        sent = obj["end"]["sum_sent"]["bytes"]
-        rcvd = obj["end"]["sum_received"]["bytes"]
-        sent_speed = obj["end"]["sum_sent"]["bits_per_second"] / 1000 / 1000
-        rcvd_speed = obj["end"]["sum_received"]["bits_per_second"] / 1000 / 1000
+    sent = obj["end"]["sum_sent"]["bytes"]
+    rcvd = obj["end"]["sum_received"]["bytes"]
+    sent_speed = obj["end"]["sum_sent"]["bits_per_second"] / 1000 / 1000
+    rcvd_speed = obj["end"]["sum_received"]["bits_per_second"] / 1000 / 1000
 
 
-        reverse = obj["start"]["test_start"]["reverse"]
-        time = (obj["start"]["timestamp"]["time"]).encode('ascii', 'ignore')
-        cookie = (obj["start"]["cookie"]).encode('ascii', 'ignore')
-        protocol = (obj["start"]["test_start"]["protocol"]).encode('ascii', 'ignore')
-        duration = obj["start"]["test_start"]["duration"]
-        num_streams = obj["start"]["test_start"]["num_streams"]
-        if reverse not in [0, 1]:
-            sys.exit("unknown reverse")
+    reverse = obj["start"]["test_start"]["reverse"]
+    time = (obj["start"]["timestamp"]["time"]).encode('ascii', 'ignore')
+    cookie = (obj["start"]["cookie"]).encode('ascii', 'ignore')
+    protocol = (obj["start"]["test_start"]["protocol"]).encode('ascii', 'ignore')
+    duration = obj["start"]["test_start"]["duration"]
+    num_streams = obj["start"]["test_start"]["num_streams"]
+    if reverse not in [0, 1]:
+        sys.exit("unknown reverse")
 
-        s = 0
-        r = 0
-        if ip in DATA:
-            (s, r) = DATA[ip]
+    s = 0
+    r = 0
+    if ip in DATA:
+        (s, r) = DATA[ip]
 
-        if reverse == 0:
-            r += rcvd
-            sent = 0
-            sent_speed = 0
-        else:
-            s += sent
-            rcvd = 0
-            rcvd_speed = 0
+    if reverse == 0:
+        r += rcvd
+        sent = 0
+        sent_speed = 0
+    else:
+        s += sent
+        rcvd = 0
+        rcvd_speed = 0
 
-        DATA[ip] = (s, r)
-        row = [time, ip, local_port, remote_port, duration, protocol, num_streams, cookie, sent, sent_speed, rcvd, rcvd_speed, s, r]
-        row = [_.decode() if isinstance(_, (bytes)) else _ for _ in row]
-        csvwriter.writerow(row)
-        return True
-    except:
-        LOG.exception("error or bogus test")
-        return False
+    DATA[ip] = (s, r)
+    row = [time, ip, local_port, remote_port, duration, protocol, num_streams, cookie, sent, sent_speed, rcvd, rcvd_speed, s, r]
+    row = [_.decode() if isinstance(_, (bytes)) else _ for _ in row]
+    csvwriter.writerow(row)
 
 if __name__ == '__main__':
     main()
